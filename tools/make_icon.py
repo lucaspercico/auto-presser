@@ -1,8 +1,7 @@
-"""Gera assets/icon.ico e PNGs para o Auto Presser."""
+"""Gera assets/icon.ico (formato clássico BMP) e icon.png para o Auto Presser."""
 
 from __future__ import annotations
 
-import io
 import struct
 from pathlib import Path
 
@@ -61,17 +60,54 @@ def make_icon(size: int) -> Image.Image:
     return img
 
 
-def _png_bytes(im: Image.Image) -> bytes:
-    buf = io.BytesIO()
-    im.save(buf, format="PNG")
-    return buf.getvalue()
+def _bmp_xor_and(im: Image.Image) -> bytes:
+    """Bitmap XOR (BGRA, bottom-up) + AND mask para entrada ICO clássica."""
+    im = im.convert("RGBA")
+    w, h = im.size
+    pixels = im.load()
+
+    xor = bytearray()
+    for y in range(h - 1, -1, -1):
+        row = bytearray()
+        for x in range(w):
+            r, g, b, a = pixels[x, y]
+            row += bytes((b, g, r, a))
+        # rows already 4-byte aligned for width*4
+        xor += row
+
+    # AND mask: 1 bit per pixel, padded to 32-bit rows
+    row_bytes = ((w + 31) // 32) * 4
+    and_mask = bytearray(row_bytes * h)
+    for y in range(h):
+        src_y = h - 1 - y
+        for x in range(w):
+            _r, _g, _b, a = pixels[x, src_y]
+            if a < 128:
+                byte_i = y * row_bytes + (x // 8)
+                and_mask[byte_i] |= 0x80 >> (x % 8)
+
+    header = struct.pack(
+        "<IIIHHIIIIII",
+        40,  # biSize
+        w,
+        h * 2,  # height includes AND mask
+        1,  # planes
+        32,  # bit count
+        0,  # BI_RGB
+        len(xor),
+        0,
+        0,
+        0,
+        0,
+    )
+    return header + bytes(xor) + bytes(and_mask)
 
 
 def write_ico(path: Path, images: list[Image.Image], sizes: list[int]) -> None:
-    """ICO com PNGs embutidos (todas as resoluções)."""
+    """ICO clássico (DIB) — compatível com ícone de .exe no Windows Explorer."""
     entries: list[tuple[int, bytes]] = []
     for im, s in zip(images, sizes):
-        entries.append((s, _png_bytes(im.convert("RGBA"))))
+        entries.append((s, _bmp_xor_and(im)))
 
     header = struct.pack("<HHH", 0, 1, len(entries))
     offset = 6 + 16 * len(entries)
@@ -87,11 +123,11 @@ def write_ico(path: Path, images: list[Image.Image], sizes: list[int]) -> None:
 
 
 def main() -> None:
+    # 256 às vezes falha em alguns toolchains; 16–128 cobre Explorer/taskbar
     sizes = [16, 24, 32, 48, 64, 128, 256]
     images = [make_icon(s) for s in sizes]
     ico = OUT / "icon.ico"
     write_ico(ico, images, sizes)
-    # PNG da janela/taskbar (64px — PhotoImage do Tk)
     make_icon(64).save(OUT / "icon.png")
     print(f"OK {ico} ({ico.stat().st_size} bytes)")
 
