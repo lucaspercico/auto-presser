@@ -2,6 +2,13 @@
 setlocal
 cd /d "%~dp0"
 
+echo Gerando icone...
+python tools\make_icon.py
+if errorlevel 1 (
+  echo Falha ao gerar icone.
+  exit /b 1
+)
+
 echo Instalando dependencias de build...
 python -m pip install -r requirements.txt pyinstaller -q
 
@@ -13,6 +20,10 @@ python -m PyInstaller ^
   --onefile ^
   --windowed ^
   --name AutoPresser ^
+  --icon assets\icon.ico ^
+  --add-data "assets\icon.ico;assets" ^
+  --add-data "assets\icon.png;assets" ^
+  --add-data "assets\icon_64.png;assets" ^
   --collect-all customtkinter ^
   --hidden-import pynput.keyboard._win32 ^
   --hidden-import pynput.mouse._win32 ^

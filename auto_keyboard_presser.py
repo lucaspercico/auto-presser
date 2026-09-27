@@ -50,6 +50,13 @@ def _app_dir() -> Path:
     return Path(__file__).resolve().parent
 
 
+def _resource_path(*parts: str) -> Path:
+    """Arquivos empacotados (ícone etc.) — _MEIPASS no PyInstaller."""
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        return Path(sys._MEIPASS).joinpath(*parts)
+    return Path(__file__).resolve().parent.joinpath(*parts)
+
+
 APP_DIR = _app_dir()
 PROFILES_DIR = APP_DIR / "profiles"
 SETTINGS_FILE = APP_DIR / "settings.json"
@@ -648,6 +655,7 @@ class App(ctk.CTk):
         self.geometry("980x580")
         self.minsize(920, 540)
         self.configure(fg_color=C["bg"])
+        self._apply_window_icon()
 
         self._q: queue.Queue = queue.Queue()
         self.engine = Engine(on_ui=self._marshal)
@@ -664,6 +672,29 @@ class App(ctk.CTk):
         self.engine.start_listeners()
         self.after(40, self._drain)
         self.protocol("WM_DELETE_WINDOW", self._close)
+
+    def _apply_window_icon(self) -> None:
+        """Ícone da janela / taskbar (ICO + PNG fallback)."""
+        ico = _resource_path("assets", "icon.ico")
+        png = _resource_path("assets", "icon_64.png")
+        if not png.exists():
+            png = _resource_path("assets", "icon.png")
+        try:
+            if ico.exists():
+                self.iconbitmap(default=str(ico))
+        except Exception:
+            try:
+                if ico.exists():
+                    self.iconbitmap(str(ico))
+            except Exception:
+                pass
+        try:
+            if png.exists():
+                img = tk.PhotoImage(file=str(png))
+                self.iconphoto(True, img)
+                self._icon_photo = img  # evita GC
+        except Exception:
+            pass
 
     def _marshal(self, fn: Callable[[], None]) -> None:
         self._q.put(fn)

@@ -97,6 +97,9 @@ Equivalente manual:
 ```bash
 pip install -r requirements.txt pyinstaller
 pyinstaller --noconfirm --clean --onefile --windowed --name AutoPresser ^
+  --icon assets\icon.ico ^
+  --add-data "assets\icon.ico;assets" ^
+  --add-data "assets\icon.png;assets" ^
   --collect-all customtkinter ^
   --hidden-import pynput.keyboard._win32 ^
   --hidden-import pynput.mouse._win32 ^
@@ -131,9 +134,13 @@ pyinstaller --noconfirm --clean --onefile --windowed --name AutoPresser ^
 
 ```
 auto-presser/
+├── assets/
+│   ├── icon.ico                # Ícone do .exe e da janela
+│   └── icon.png
 ├── auto_keyboard_presser.py    # App principal
 ├── auto_keyboard_presser.pyw   # Launcher sem CMD
 ├── build.bat                   # Gera o .exe
+├── tools/make_icon.py          # Regenera o ícone
 ├── requirements.txt
 ├── LICENSE
 └── README.md
