@@ -91,8 +91,8 @@ def main() -> None:
     images = [make_icon(s) for s in sizes]
     ico = OUT / "icon.ico"
     write_ico(ico, images, sizes)
-    images[-1].save(OUT / "icon.png")
-    make_icon(64).save(OUT / "icon_64.png")
+    # PNG da janela/taskbar (64px — PhotoImage do Tk)
+    make_icon(64).save(OUT / "icon.png")
     print(f"OK {ico} ({ico.stat().st_size} bytes)")
 
 

@@ -676,9 +676,7 @@ class App(ctk.CTk):
     def _apply_window_icon(self) -> None:
         """Ícone da janela / taskbar (ICO + PNG fallback)."""
         ico = _resource_path("assets", "icon.ico")
-        png = _resource_path("assets", "icon_64.png")
-        if not png.exists():
-            png = _resource_path("assets", "icon.png")
+        png = _resource_path("assets", "icon.png")
         try:
             if ico.exists():
                 self.iconbitmap(default=str(ico))
