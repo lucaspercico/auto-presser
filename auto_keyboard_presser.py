@@ -606,22 +606,25 @@ class Engine:
 # ── UI helpers ──────────────────────────────────────────────────────────────
 
 def card(parent, title: str | None = None) -> ctk.CTkFrame:
-    box = ctk.CTkFrame(parent, fg_color=C["card"], corner_radius=12, border_width=1, border_color=C["border"])
+    box = ctk.CTkFrame(
+        parent, fg_color=C["card"], corner_radius=10,
+        border_width=1, border_color=C["border"],
+    )
     if title:
         ctk.CTkLabel(
             box, text=title,
-            font=ctk.CTkFont(family="Segoe UI Semibold", size=11),
+            font=ctk.CTkFont(family="Segoe UI Semibold", size=10),
             text_color=C["muted"],
-        ).pack(anchor="w", padx=14, pady=(12, 2))
+        ).pack(anchor="w", padx=10, pady=(8, 0))
     return box
 
 
 def soft_btn(parent, text, command, **kw):
     defaults = dict(
-        height=32, corner_radius=8,
+        height=28, corner_radius=8,
         fg_color=C["card2"], hover_color=C["border"],
         text_color=C["text"],
-        font=ctk.CTkFont(family="Segoe UI", size=12),
+        font=ctk.CTkFont(family="Segoe UI", size=11),
     )
     defaults.update(kw)
     return ctk.CTkButton(parent, text=text, command=command, **defaults)
@@ -633,8 +636,8 @@ class App(ctk.CTk):
     def __init__(self) -> None:
         super().__init__()
         self.title("Auto Presser")
-        self.geometry("920x640")
-        self.minsize(860, 580)
+        self.geometry("980x580")
+        self.minsize(920, 540)
         self.configure(fg_color=C["bg"])
 
         self._q: queue.Queue = queue.Queue()
@@ -670,374 +673,340 @@ class App(ctk.CTk):
 
     # ── build ───────────────────────────────────────────────────────────────
     def _build(self) -> None:
-        # Header
-        hdr = ctk.CTkFrame(self, fg_color=C["panel"], corner_radius=0, height=68)
+        hdr = ctk.CTkFrame(self, fg_color=C["panel"], corner_radius=0, height=52)
         hdr.pack(fill="x")
         hdr.pack_propagate(False)
 
         left_h = ctk.CTkFrame(hdr, fg_color="transparent")
-        left_h.pack(side="left", padx=20, pady=14)
+        left_h.pack(side="left", padx=16, pady=10)
         ctk.CTkLabel(
             left_h, text="Auto Presser",
-            font=ctk.CTkFont(family="Segoe UI Semibold", size=22),
+            font=ctk.CTkFont(family="Segoe UI Semibold", size=18),
             text_color=C["text"],
-        ).pack(anchor="w")
+        ).pack(side="left")
         ctk.CTkLabel(
-            left_h, text="Teclado · Mouse · Híbrido",
-            font=ctk.CTkFont(family="Segoe UI", size=12),
+            left_h, text="  ·  Teclado · Mouse · Híbrido",
+            font=ctk.CTkFont(family="Segoe UI", size=11),
             text_color=C["muted"],
-        ).pack(anchor="w")
+        ).pack(side="left", pady=2)
 
         right_h = ctk.CTkFrame(hdr, fg_color="transparent")
-        right_h.pack(side="right", padx=20)
+        right_h.pack(side="right", padx=14)
         self.status = ctk.CTkLabel(
             right_h, text="●  IDLE",
-            font=ctk.CTkFont(family="Segoe UI Semibold", size=13),
+            font=ctk.CTkFont(family="Segoe UI Semibold", size=12),
             text_color=C["idle"],
         )
-        self.status.pack(side="left", padx=(0, 12))
+        self.status.pack(side="left", padx=(0, 10))
         self.panic_btn = soft_btn(
             right_h, f"Panic  {self.engine.panic_hotkey.upper()}",
             self.engine.panic,
-            width=110, height=34,
+            width=96, height=28,
             fg_color="#3a1f24", hover_color="#5a2a32",
             text_color=C["danger"],
         )
         self.panic_btn.pack(side="left")
 
-        # Body
         body = ctk.CTkFrame(self, fg_color="transparent")
-        body.pack(fill="both", expand=True, padx=16, pady=16)
+        body.pack(fill="both", expand=True, padx=12, pady=(8, 4))
 
-        # Mode switches row
-        modes = ctk.CTkFrame(body, fg_color=C["panel"], corner_radius=12)
-        modes.pack(fill="x", pady=(0, 12))
+        modes = ctk.CTkFrame(body, fg_color=C["panel"], corner_radius=10, height=40)
+        modes.pack(fill="x", pady=(0, 8))
+        modes.pack_propagate(False)
 
         ctk.CTkLabel(
-            modes, text="Módulos ativos",
-            font=ctk.CTkFont(family="Segoe UI Semibold", size=13),
-            text_color=C["text"],
-        ).pack(side="left", padx=16, pady=14)
+            modes, text="Módulos",
+            font=ctk.CTkFont(family="Segoe UI Semibold", size=11),
+            text_color=C["muted"],
+        ).pack(side="left", padx=(12, 6))
 
         self.kb_sw = ctk.CTkSwitch(
-            modes, text="Teclado",
-            command=self._on_modules,
-            font=ctk.CTkFont(size=13),
-            text_color=C["text"],
-            progress_color=C["accent"],
+            modes, text="Teclado", command=self._on_modules,
+            font=ctk.CTkFont(size=12), text_color=C["text"],
+            progress_color=C["accent"], width=36, height=18,
         )
-        self.kb_sw.pack(side="left", padx=12)
+        self.kb_sw.pack(side="left", padx=6)
 
         self.ms_sw = ctk.CTkSwitch(
-            modes, text="Mouse (auto-click)",
-            command=self._on_modules,
-            font=ctk.CTkFont(size=13),
-            text_color=C["text"],
-            progress_color=C["accent"],
+            modes, text="Mouse", command=self._on_modules,
+            font=ctk.CTkFont(size=12), text_color=C["text"],
+            progress_color=C["accent"], width=36, height=18,
         )
-        self.ms_sw.pack(side="left", padx=12)
+        self.ms_sw.pack(side="left", padx=6)
 
         self.mode_hint = ctk.CTkLabel(
-            modes, text="",
-            font=ctk.CTkFont(size=12), text_color=C["muted"],
+            modes, text="", font=ctk.CTkFont(size=11), text_color=C["muted"],
         )
-        self.mode_hint.pack(side="right", padx=16)
+        self.mode_hint.pack(side="right", padx=12)
 
-        # Columns
         cols = ctk.CTkFrame(body, fg_color="transparent")
         cols.pack(fill="both", expand=True)
 
         self.left = ctk.CTkFrame(cols, fg_color=C["panel"], corner_radius=12)
         self.left.pack(side="left", fill="both", expand=True, padx=(0, 8))
 
-        self.right = ctk.CTkFrame(cols, fg_color=C["panel"], corner_radius=12, width=320)
+        self.right = ctk.CTkFrame(cols, fg_color=C["panel"], corner_radius=12, width=350)
         self.right.pack(side="right", fill="y")
         self.right.pack_propagate(False)
 
         self._build_keyboard_panel(self.left)
         self._build_side_panel(self.right)
 
-        # Footer
         self.tip = ctk.CTkLabel(
             self, text="",
-            font=ctk.CTkFont(family="Segoe UI", size=12),
+            font=ctk.CTkFont(family="Segoe UI", size=11),
             text_color=C["muted"],
         )
-        self.tip.pack(fill="x", padx=20, pady=(0, 12))
+        self.tip.pack(fill="x", padx=14, pady=(2, 8))
         self._update_tip()
 
     def _build_keyboard_panel(self, parent) -> None:
         head = ctk.CTkFrame(parent, fg_color="transparent")
-        head.pack(fill="x", padx=14, pady=(14, 6))
+        head.pack(fill="x", padx=12, pady=(10, 4))
         ctk.CTkLabel(
             head, text="Sequência de teclado",
-            font=ctk.CTkFont(family="Segoe UI Semibold", size=15),
+            font=ctk.CTkFont(family="Segoe UI Semibold", size=13),
             text_color=C["text"],
         ).pack(side="left")
         self.count_lbl = ctk.CTkLabel(
             head, text="0 teclas",
-            font=ctk.CTkFont(size=12), text_color=C["muted"],
+            font=ctk.CTkFont(size=11), text_color=C["muted"],
         )
         self.count_lbl.pack(side="right")
 
-        wrap = ctk.CTkFrame(parent, fg_color=C["card"], corner_radius=10)
-        wrap.pack(fill="both", expand=True, padx=14, pady=(0, 8))
+        # Altura fixa — não engole a janela
+        wrap = ctk.CTkFrame(parent, fg_color=C["card"], corner_radius=10, height=200)
+        wrap.pack(fill="x", padx=12, pady=(0, 6))
+        wrap.pack_propagate(False)
 
         cols = ctk.CTkFrame(wrap, fg_color="transparent")
-        cols.pack(fill="x", padx=10, pady=(8, 0))
-        ctk.CTkLabel(cols, text="#", width=36, anchor="w",
-                     font=ctk.CTkFont(size=11), text_color=C["muted"]).pack(side="left")
+        cols.pack(fill="x", padx=8, pady=(6, 0))
+        ctk.CTkLabel(cols, text="#", width=28, anchor="w",
+                     font=ctk.CTkFont(size=10), text_color=C["muted"]).pack(side="left")
         ctk.CTkLabel(cols, text="TECLA", anchor="w",
-                     font=ctk.CTkFont(size=11), text_color=C["muted"]).pack(side="left", padx=8)
+                     font=ctk.CTkFont(size=10), text_color=C["muted"]).pack(side="left", padx=6)
 
         self.listbox = tk.Listbox(
             wrap,
             bg=C["card"], fg=C["text"],
             selectbackground=C["accent"], selectforeground="#fff",
             activestyle="none", highlightthickness=0, borderwidth=0,
-            font=("Consolas", 12), exportselection=False,
+            font=("Consolas", 11), exportselection=False, height=8,
         )
-        self.listbox.pack(fill="both", expand=True, padx=8, pady=8)
+        self.listbox.pack(fill="both", expand=True, padx=6, pady=6)
 
-        btns = ctk.CTkFrame(parent, fg_color="transparent")
-        btns.pack(fill="x", padx=14, pady=(0, 8))
-        soft_btn(btns, "▲", lambda: self._move(-1), width=44).pack(side="left", padx=(0, 4))
-        soft_btn(btns, "▼", lambda: self._move(1), width=44).pack(side="left", padx=(0, 4))
-        soft_btn(btns, "Remover", self._remove, width=90).pack(side="left", padx=(0, 4))
+        # Uma barra: edição + timing + arquivo
+        bar = ctk.CTkFrame(parent, fg_color=C["card"], corner_radius=10)
+        bar.pack(fill="x", padx=12, pady=(0, 8))
+
+        row1 = ctk.CTkFrame(bar, fg_color="transparent")
+        row1.pack(fill="x", padx=8, pady=(8, 4))
+        soft_btn(row1, "▲", lambda: self._move(-1), width=34).pack(side="left", padx=(0, 3))
+        soft_btn(row1, "▼", lambda: self._move(1), width=34).pack(side="left", padx=(0, 3))
+        soft_btn(row1, "Remover", self._remove, width=70).pack(side="left", padx=(0, 3))
         soft_btn(
-            btns, "Limpar", self._clear, width=80,
+            row1, "Limpar", self._clear, width=60,
             fg_color="#3a1f24", hover_color="#5a2a32", text_color=C["danger"],
         ).pack(side="left")
-        soft_btn(btns, "Salvar", self._save_profile, width=80).pack(side="right", padx=(4, 0))
-        soft_btn(btns, "Abrir", self._load_profile, width=80).pack(side="right")
+        soft_btn(row1, "Salvar", self._save_profile, width=62).pack(side="right", padx=(3, 0))
+        soft_btn(row1, "Abrir", self._load_profile, width=62).pack(side="right")
 
-        # Keyboard timing
-        self.kb_card = card(parent, "TEMPO ENTRE TECLAS")
-        self.kb_card.pack(fill="x", padx=14, pady=(0, 14))
-        row = ctk.CTkFrame(self.kb_card, fg_color="transparent")
-        row.pack(fill="x", padx=14, pady=(4, 12))
-
+        row2 = ctk.CTkFrame(bar, fg_color="transparent")
+        row2.pack(fill="x", padx=8, pady=(0, 8))
+        ctk.CTkLabel(row2, text="Intervalo", font=ctk.CTkFont(size=11),
+                     text_color=C["muted"]).pack(side="left")
         self.kb_delay = ctk.StringVar()
-        e = ctk.CTkEntry(row, textvariable=self.kb_delay, width=90, height=34,
-                         font=ctk.CTkFont(family="Consolas", size=14), justify="center")
-        e.pack(side="left")
+        e = ctk.CTkEntry(
+            row2, textvariable=self.kb_delay, width=60, height=26,
+            font=ctk.CTkFont(family="Consolas", size=12), justify="center",
+        )
+        e.pack(side="left", padx=(6, 2))
         e.bind("<FocusOut>", lambda _e: self._apply_kb_timing())
         e.bind("<Return>", lambda _e: self._apply_kb_timing())
-        ctk.CTkLabel(row, text="ms", text_color=C["muted"]).pack(side="left", padx=8)
+        ctk.CTkLabel(row2, text="ms", font=ctk.CTkFont(size=11),
+                     text_color=C["muted"]).pack(side="left")
 
-        ctk.CTkLabel(row, text="Hold", text_color=C["muted"]).pack(side="left", padx=(16, 4))
+        ctk.CTkLabel(row2, text="Hold", font=ctk.CTkFont(size=11),
+                     text_color=C["muted"]).pack(side="left", padx=(14, 0))
         self.kb_hold = ctk.StringVar()
-        he = ctk.CTkEntry(row, textvariable=self.kb_hold, width=60, height=30,
-                          font=ctk.CTkFont(family="Consolas", size=12), justify="center")
-        he.pack(side="left")
+        he = ctk.CTkEntry(
+            row2, textvariable=self.kb_hold, width=48, height=26,
+            font=ctk.CTkFont(family="Consolas", size=12), justify="center",
+        )
+        he.pack(side="left", padx=(6, 2))
         he.bind("<FocusOut>", lambda _e: self._apply_kb_timing())
         he.bind("<Return>", lambda _e: self._apply_kb_timing())
-        ctk.CTkLabel(row, text="ms", text_color=C["muted"]).pack(side="left", padx=4)
+        ctk.CTkLabel(row2, text="ms", font=ctk.CTkFont(size=11),
+                     text_color=C["muted"]).pack(side="left")
 
-    def _build_side_panel(self, parent) -> None:
-        scroll = ctk.CTkScrollableFrame(parent, fg_color="transparent")
-        scroll.pack(fill="both", expand=True, padx=4, pady=4)
-
-        ctk.CTkLabel(
-            scroll, text="Controles",
-            font=ctk.CTkFont(family="Segoe UI Semibold", size=15),
-            text_color=C["text"],
-        ).pack(anchor="w", padx=10, pady=(10, 8))
-
-        # Mouse card
-        self.ms_card = card(scroll, "AUTO-CLICK (MOUSE)")
-        self.ms_card.pack(fill="x", padx=10, pady=(0, 10))
-
-        # Button select — segmented (reliable, not radio)
-        ctk.CTkLabel(
-            self.ms_card, text="Botão",
-            font=ctk.CTkFont(size=12), text_color=C["text"],
-        ).pack(anchor="w", padx=14, pady=(4, 2))
-        self.click_btn_seg = ctk.CTkSegmentedButton(
-            self.ms_card,
-            values=["Esquerdo", "Direito", "Meio"],
-            command=self._on_click_btn,
-            font=ctk.CTkFont(size=12),
-            height=32,
-            selected_color=C["accent"],
-            selected_hover_color=C["accent_h"],
-            unselected_color=C["card2"],
-            unselected_hover_color=C["border"],
-        )
-        self.click_btn_seg.pack(fill="x", padx=14, pady=(0, 8))
-        self.click_btn_seg.set("Esquerdo")
-
-        # Interval
-        ir = ctk.CTkFrame(self.ms_card, fg_color="transparent")
-        ir.pack(fill="x", padx=14, pady=(0, 6))
-        ctk.CTkLabel(ir, text="Intervalo", text_color=C["muted"],
-                     font=ctk.CTkFont(size=12)).pack(side="left")
-        self.click_iv = ctk.StringVar()
-        ie = ctk.CTkEntry(ir, textvariable=self.click_iv, width=80, height=30,
-                          font=ctk.CTkFont(family="Consolas", size=13), justify="center")
-        ie.pack(side="right")
-        ie.bind("<FocusOut>", lambda _e: self._apply_mouse())
-        ie.bind("<Return>", lambda _e: self._apply_mouse())
-        ctk.CTkLabel(ir, text="ms", text_color=C["muted"]).pack(side="right", padx=6)
-
-        # Clicks per tick
-        nr = ctk.CTkFrame(self.ms_card, fg_color="transparent")
-        nr.pack(fill="x", padx=14, pady=(0, 6))
-        ctk.CTkLabel(nr, text="Cliques por ciclo", text_color=C["muted"],
-                     font=ctk.CTkFont(size=12)).pack(side="left")
-        self.click_n = ctk.StringVar()
-        ne = ctk.CTkEntry(nr, textvariable=self.click_n, width=60, height=30,
-                          font=ctk.CTkFont(family="Consolas", size=13), justify="center")
-        ne.pack(side="right")
-        ne.bind("<FocusOut>", lambda _e: self._apply_mouse())
-        ne.bind("<Return>", lambda _e: self._apply_mouse())
-
-        # Position
-        ctk.CTkLabel(
-            self.ms_card, text="Posição",
-            font=ctk.CTkFont(size=12), text_color=C["text"],
-        ).pack(anchor="w", padx=14, pady=(4, 2))
-        self.pos_seg = ctk.CTkSegmentedButton(
-            self.ms_card,
-            values=["Cursor atual", "Fixo (X,Y)"],
-            command=self._on_pos_mode,
-            font=ctk.CTkFont(size=12),
-            height=32,
-            selected_color=C["accent"],
-            selected_hover_color=C["accent_h"],
-            unselected_color=C["card2"],
-            unselected_hover_color=C["border"],
-        )
-        self.pos_seg.pack(fill="x", padx=14, pady=(0, 8))
-        self.pos_seg.set("Cursor atual")
-
-        self.pos_row = ctk.CTkFrame(self.ms_card, fg_color="transparent")
-        self.pos_row.pack(fill="x", padx=14, pady=(0, 8))
-        self.click_x = ctk.StringVar(value="0")
-        self.click_y = ctk.StringVar(value="0")
-        ctk.CTkLabel(self.pos_row, text="X", text_color=C["muted"]).pack(side="left")
-        xe = ctk.CTkEntry(self.pos_row, textvariable=self.click_x, width=70, height=28,
-                          font=ctk.CTkFont(family="Consolas", size=12), justify="center")
-        xe.pack(side="left", padx=4)
-        ctk.CTkLabel(self.pos_row, text="Y", text_color=C["muted"]).pack(side="left", padx=(8, 0))
-        ye = ctk.CTkEntry(self.pos_row, textvariable=self.click_y, width=70, height=28,
-                          font=ctk.CTkFont(family="Consolas", size=12), justify="center")
-        ye.pack(side="left", padx=4)
-        soft_btn(self.pos_row, "Pegar", self._grab_pos, width=64, height=28).pack(side="left", padx=6)
-        for w in (xe, ye):
-            w.bind("<FocusOut>", lambda _e: self._apply_mouse())
-            w.bind("<Return>", lambda _e: self._apply_mouse())
-
-        soft_btn(
-            self.ms_card, "Testar 1 clique", self._test_click,
-            height=30, fg_color=C["card2"],
-        ).pack(fill="x", padx=14, pady=(0, 12))
-
-        # Repetition — segmented, NOT radio (fixes "travado")
-        rep = card(scroll, "REPETIÇÃO")
-        rep.pack(fill="x", padx=10, pady=(0, 10))
-
-        self.rep_seg = ctk.CTkSegmentedButton(
-            rep,
-            values=["N vezes", "Contínuo"],
-            command=self._on_rep_mode,
-            font=ctk.CTkFont(size=13),
-            height=34,
-            selected_color=C["accent"],
-            selected_hover_color=C["accent_h"],
-            unselected_color=C["card2"],
-            unselected_hover_color=C["border"],
-        )
-        self.rep_seg.pack(fill="x", padx=14, pady=(6, 8))
-
-        self.times_row = ctk.CTkFrame(rep, fg_color="transparent")
-        self.times_row.pack(fill="x", padx=14, pady=(0, 12))
-        ctk.CTkLabel(
-            self.times_row, text="Quantidade",
-            font=ctk.CTkFont(size=12), text_color=C["muted"],
-        ).pack(side="left")
-        self.rep_times = ctk.StringVar()
-        te = ctk.CTkEntry(
-            self.times_row, textvariable=self.rep_times, width=70, height=30,
-            font=ctk.CTkFont(family="Consolas", size=13), justify="center",
-        )
-        te.pack(side="right")
-        te.bind("<FocusOut>", lambda _e: self._apply_repeat())
-        te.bind("<Return>", lambda _e: self._apply_repeat())
-
-        # Hotkeys
-        hk = card(scroll, "ATALHOS GLOBAIS")
-        hk.pack(fill="x", padx=10, pady=(0, 10))
-        self.hk_record = ctk.StringVar()
-        self.hk_run = ctk.StringVar()
-        self.hk_panic = ctk.StringVar()
-        self._hk_row(hk, "Gravar teclado", self.hk_record, "record")
-        self._hk_row(hk, "Iniciar / Parar", self.hk_run, "run")
-        self._hk_row(hk, "Panic (para tudo)", self.hk_panic, "panic")
-
-        # Safety note
-        safe = card(scroll, "SEGURANÇA")
-        safe.pack(fill="x", padx=10, pady=(0, 10))
-        ctk.CTkLabel(
-            safe,
-            text=f"• Intervalo mínimo {MIN_INTERVAL_MS} ms\n"
-                 f"• Panic sempre disponível\n"
-                 f"• Atalhos não entram na gravação\n"
-                 f"• Pare antes de editar a lista",
-            justify="left", anchor="w",
-            font=ctk.CTkFont(size=12), text_color=C["muted"],
-        ).pack(anchor="w", padx=14, pady=(4, 12))
-
-        # Main actions
-        actions = ctk.CTkFrame(scroll, fg_color="transparent")
-        actions.pack(fill="x", padx=10, pady=6)
+        actions = ctk.CTkFrame(parent, fg_color="transparent")
+        actions.pack(fill="x", padx=12, pady=(0, 10), side="bottom")
 
         self.btn_rec = ctk.CTkButton(
-            actions, text="●  Gravar teclado",
+            actions, text="●  Gravar",
             command=self.engine.toggle_record,
-            height=42, corner_radius=10,
+            height=38, corner_radius=10,
             fg_color="#3a1f24", hover_color="#5a2a32",
             text_color=C["danger"],
-            font=ctk.CTkFont(family="Segoe UI Semibold", size=14),
+            font=ctk.CTkFont(family="Segoe UI Semibold", size=13),
         )
-        self.btn_rec.pack(fill="x", pady=(0, 8))
+        self.btn_rec.pack(side="left", fill="x", expand=True, padx=(0, 6))
 
         self.btn_run = ctk.CTkButton(
             actions, text="▶  Iniciar",
             command=self._start_or_stop,
-            height=44, corner_radius=10,
+            height=38, corner_radius=10,
             fg_color=C["accent"], hover_color=C["accent_h"],
-            font=ctk.CTkFont(family="Segoe UI Semibold", size=15),
+            font=ctk.CTkFont(family="Segoe UI Semibold", size=13),
         )
-        self.btn_run.pack(fill="x", pady=(0, 8))
+        self.btn_run.pack(side="left", fill="x", expand=True, padx=(0, 6))
 
         soft_btn(
             actions, "■  Parar", self.engine.panic,
-            height=36, fg_color=C["card2"],
-        ).pack(fill="x")
-
-        soft_btn(
-            scroll, "Sair", self._close,
-            height=30, width=80,
-            fg_color="transparent", border_width=1, border_color=C["border"],
-            text_color=C["muted"],
-        ).pack(anchor="e", padx=10, pady=14)
-
-    def _hk_row(self, parent, label, var, kind) -> None:
-        row = ctk.CTkFrame(parent, fg_color="transparent")
-        row.pack(fill="x", padx=14, pady=(0, 8))
-        ctk.CTkLabel(row, text=label, anchor="w",
-                     font=ctk.CTkFont(size=12), text_color=C["text"]).pack(anchor="w")
-        inner = ctk.CTkFrame(row, fg_color="transparent")
-        inner.pack(fill="x", pady=(4, 0))
-        ctk.CTkEntry(
-            inner, textvariable=var, width=90, height=30, state="readonly",
-            font=ctk.CTkFont(family="Consolas", size=12), justify="center",
+            height=38, width=84, fg_color=C["card2"],
         ).pack(side="left")
+
+    def _build_side_panel(self, parent) -> None:
+        """Controles densos — tudo visível, sem scroll."""
+        root = ctk.CTkFrame(parent, fg_color="transparent")
+        root.pack(fill="both", expand=True, padx=8, pady=8)
+
+        ctk.CTkLabel(
+            root, text="Controles",
+            font=ctk.CTkFont(family="Segoe UI Semibold", size=13),
+            text_color=C["text"],
+        ).pack(anchor="w", padx=2, pady=(0, 4))
+
+        self.ms_card = card(root, "MOUSE")
+        self.ms_card.pack(fill="x", pady=(0, 6))
+
+        self.click_btn_seg = ctk.CTkSegmentedButton(
+            self.ms_card,
+            values=["Esq", "Dir", "Meio"],
+            command=self._on_click_btn,
+            font=ctk.CTkFont(size=11), height=26,
+            selected_color=C["accent"], selected_hover_color=C["accent_h"],
+            unselected_color=C["card2"], unselected_hover_color=C["border"],
+        )
+        self.click_btn_seg.pack(fill="x", padx=10, pady=(6, 4))
+        self.click_btn_seg.set("Esq")
+
+        grid = ctk.CTkFrame(self.ms_card, fg_color="transparent")
+        grid.pack(fill="x", padx=10, pady=(0, 4))
+        self.click_iv = ctk.StringVar()
+        self.click_n = ctk.StringVar()
+
+        ctk.CTkLabel(grid, text="Intervalo", font=ctk.CTkFont(size=11),
+                     text_color=C["muted"]).grid(row=0, column=0, sticky="w")
+        ie = ctk.CTkEntry(grid, textvariable=self.click_iv, width=54, height=24,
+                          font=ctk.CTkFont(family="Consolas", size=11), justify="center")
+        ie.grid(row=0, column=1, padx=(4, 2))
+        ctk.CTkLabel(grid, text="ms", font=ctk.CTkFont(size=10),
+                     text_color=C["muted"]).grid(row=0, column=2, sticky="w")
+        ctk.CTkLabel(grid, text="Cliques", font=ctk.CTkFont(size=11),
+                     text_color=C["muted"]).grid(row=0, column=3, sticky="w", padx=(10, 0))
+        ne = ctk.CTkEntry(grid, textvariable=self.click_n, width=40, height=24,
+                          font=ctk.CTkFont(family="Consolas", size=11), justify="center")
+        ne.grid(row=0, column=4, padx=(4, 0))
+        for w in (ie, ne):
+            w.bind("<FocusOut>", lambda _e: self._apply_mouse())
+            w.bind("<Return>", lambda _e: self._apply_mouse())
+
+        pos_line = ctk.CTkFrame(self.ms_card, fg_color="transparent")
+        pos_line.pack(fill="x", padx=10, pady=(0, 4))
+        self.pos_seg = ctk.CTkSegmentedButton(
+            pos_line,
+            values=["Cursor", "Fixo XY"],
+            command=self._on_pos_mode,
+            font=ctk.CTkFont(size=11), height=26,
+            selected_color=C["accent"], selected_hover_color=C["accent_h"],
+            unselected_color=C["card2"], unselected_hover_color=C["border"],
+            width=170,
+        )
+        self.pos_seg.pack(side="left")
+        self.pos_seg.set("Cursor")
+        soft_btn(pos_line, "Testar", self._test_click, width=64, height=26).pack(side="right")
+
+        self.pos_row = ctk.CTkFrame(self.ms_card, fg_color="transparent")
+        self.click_x = ctk.StringVar(value="0")
+        self.click_y = ctk.StringVar(value="0")
+        ctk.CTkLabel(self.pos_row, text="X", font=ctk.CTkFont(size=11),
+                     text_color=C["muted"]).pack(side="left")
+        xe = ctk.CTkEntry(self.pos_row, textvariable=self.click_x, width=54, height=24,
+                          font=ctk.CTkFont(family="Consolas", size=11), justify="center")
+        xe.pack(side="left", padx=3)
+        ctk.CTkLabel(self.pos_row, text="Y", font=ctk.CTkFont(size=11),
+                     text_color=C["muted"]).pack(side="left", padx=(6, 0))
+        ye = ctk.CTkEntry(self.pos_row, textvariable=self.click_y, width=54, height=24,
+                          font=ctk.CTkFont(family="Consolas", size=11), justify="center")
+        ye.pack(side="left", padx=3)
+        soft_btn(self.pos_row, "Pegar", self._grab_pos, width=54, height=24).pack(side="left", padx=4)
+        for w in (xe, ye):
+            w.bind("<FocusOut>", lambda _e: self._apply_mouse())
+            w.bind("<Return>", lambda _e: self._apply_mouse())
+
+        ctk.CTkFrame(self.ms_card, fg_color="transparent", height=6).pack()
+
+        # Repetição inline
+        rep = card(root, "REPETIÇÃO")
+        rep.pack(fill="x", pady=(0, 6))
+        rep_inner = ctk.CTkFrame(rep, fg_color="transparent")
+        rep_inner.pack(fill="x", padx=10, pady=(6, 8))
+        self.rep_seg = ctk.CTkSegmentedButton(
+            rep_inner,
+            values=["N vezes", "Contínuo"],
+            command=self._on_rep_mode,
+            font=ctk.CTkFont(size=11), height=26,
+            selected_color=C["accent"], selected_hover_color=C["accent_h"],
+            unselected_color=C["card2"], unselected_hover_color=C["border"],
+            width=180,
+        )
+        self.rep_seg.pack(side="left")
+        self.times_row = ctk.CTkFrame(rep_inner, fg_color="transparent")
+        self.rep_times = ctk.StringVar()
+        te = ctk.CTkEntry(
+            self.times_row, textvariable=self.rep_times, width=44, height=24,
+            font=ctk.CTkFont(family="Consolas", size=11), justify="center",
+        )
+        te.pack(side="left", padx=(8, 2))
+        te.bind("<FocusOut>", lambda _e: self._apply_repeat())
+        te.bind("<Return>", lambda _e: self._apply_repeat())
+        ctk.CTkLabel(self.times_row, text="×", font=ctk.CTkFont(size=12),
+                     text_color=C["muted"]).pack(side="left")
+
+        # Atalhos em 3 chips
+        hk = card(root, "ATALHOS")
+        hk.pack(fill="x", pady=(0, 4))
+        self.hk_record = ctk.StringVar()
+        self.hk_run = ctk.StringVar()
+        self.hk_panic = ctk.StringVar()
+        hk_grid = ctk.CTkFrame(hk, fg_color="transparent")
+        hk_grid.pack(fill="x", padx=6, pady=(4, 8))
+        self._hk_chip(hk_grid, "Gravar", self.hk_record, "record", 0)
+        self._hk_chip(hk_grid, "Play", self.hk_run, "run", 1)
+        self._hk_chip(hk_grid, "Panic", self.hk_panic, "panic", 2)
+
+        ctk.CTkLabel(
+            root,
+            text=f"Mín. {MIN_INTERVAL_MS} ms · atalhos fora da gravação · Panic para tudo",
+            font=ctk.CTkFont(size=10), text_color=C["muted"],
+            wraplength=320, justify="left",
+        ).pack(anchor="w", padx=4, pady=(2, 0))
+
+    def _hk_chip(self, parent, label: str, var: ctk.StringVar, kind: str, col: int) -> None:
+        cell = ctk.CTkFrame(parent, fg_color=C["card2"], corner_radius=8)
+        cell.grid(row=0, column=col, padx=3, sticky="nsew")
+        parent.grid_columnconfigure(col, weight=1)
+        ctk.CTkLabel(cell, text=label, font=ctk.CTkFont(size=10),
+                     text_color=C["muted"]).pack(pady=(4, 0))
+        ctk.CTkEntry(
+            cell, textvariable=var, width=52, height=22, state="readonly",
+            font=ctk.CTkFont(family="Consolas", size=11), justify="center",
+        ).pack(padx=5, pady=2)
         soft_btn(
-            inner, "Definir", lambda: self._capture(kind),
-            width=70, height=30, fg_color=C["accent"], hover_color=C["accent_h"],
-        ).pack(side="left", padx=8)
+            cell, "Definir", lambda: self._capture(kind),
+            width=58, height=22, fg_color=C["accent"], hover_color=C["accent_h"],
+        ).pack(padx=5, pady=(0, 5))
 
     # ── sync ────────────────────────────────────────────────────────────────
     def _sync_from_engine(self) -> None:
@@ -1059,9 +1028,9 @@ class App(ctk.CTk):
         self.click_y.set(str(e.click_y))
         self.rep_times.set(str(e.repeat_count))
 
-        btn_map = {"left": "Esquerdo", "right": "Direito", "middle": "Meio"}
-        self.click_btn_seg.set(btn_map.get(e.click_button, "Esquerdo"))
-        self.pos_seg.set("Fixo (X,Y)" if e.click_pos_mode == "fixed" else "Cursor atual")
+        btn_map = {"left": "Esq", "right": "Dir", "middle": "Meio"}
+        self.click_btn_seg.set(btn_map.get(e.click_button, "Esq"))
+        self.pos_seg.set("Fixo XY" if e.click_pos_mode == "fixed" else "Cursor")
         self.rep_seg.set("Contínuo" if e.repeat_mode == "continuous" else "N vezes")
 
         self.hk_record.set(e.record_hotkey.upper())
@@ -1080,32 +1049,29 @@ class App(ctk.CTk):
 
         kb_on = self.engine.kb_enabled
         ms_on = self.engine.mouse_enabled
-
         if kb_on and ms_on:
-            self.mode_hint.configure(text="Híbrido: teclado + mouse no mesmo ciclo")
+            self.mode_hint.configure(text="Híbrido: teclado + mouse")
         elif kb_on:
             self.mode_hint.configure(text="Só teclado")
         elif ms_on:
             self.mode_hint.configure(text="Só auto-click")
         else:
             self.mode_hint.configure(text="Ative ao menos um módulo")
-
-        # Feedback visual nos painéis
-        kb_color = C["text"] if kb_on else C["muted"]
-        self.count_lbl.configure(text_color=kb_color if kb_on else C["muted"])
+        self.count_lbl.configure(text_color=C["text"] if kb_on else C["muted"])
 
     def _on_click_btn(self, value: str) -> None:
         self.engine.click_button = {
-            "Esquerdo": "left", "Direito": "right", "Meio": "middle",
+            "Esq": "left", "Esquerdo": "left",
+            "Dir": "right", "Direito": "right",
+            "Meio": "middle",
         }.get(value, "left")
         self.engine.save_settings()
 
     def _on_pos_mode(self, value: str) -> None:
-        fixed = value.startswith("Fixo")
+        fixed = "Fixo" in value
         self.engine.click_pos_mode = "fixed" if fixed else "current"
-        # Show/hide XY row
         if fixed:
-            self.pos_row.pack(fill="x", padx=14, pady=(0, 8))
+            self.pos_row.pack(fill="x", padx=10, pady=(0, 6))
         else:
             self.pos_row.pack_forget()
         self.engine.save_settings()
@@ -1116,7 +1082,7 @@ class App(ctk.CTk):
         if continuous:
             self.times_row.pack_forget()
         else:
-            self.times_row.pack(fill="x", padx=14, pady=(0, 12))
+            self.times_row.pack(side="left", padx=(4, 0))
         self.engine.save_settings()
 
     def _apply_kb_timing(self) -> None:
@@ -1144,12 +1110,13 @@ class App(ctk.CTk):
         self.engine.save_settings()
 
     def _apply_repeat(self) -> None:
-        self.engine.repeat_count = clamp_int(self.rep_times.get(), 1, 1_000_000, self.engine.repeat_count)
+        self.engine.repeat_count = clamp_int(
+            self.rep_times.get(), 1, 1_000_000, self.engine.repeat_count
+        )
         self.rep_times.set(str(self.engine.repeat_count))
         self.engine.save_settings()
 
     def _grab_pos(self) -> None:
-        # Grab after short delay so user can move mouse
         self.mode_hint.configure(text="Posicione o cursor… 1s")
         self.after(1000, self._grab_pos_now)
 
@@ -1175,7 +1142,6 @@ class App(ctk.CTk):
             "y": self.engine.click_y,
         })
 
-    # ── hotkey capture ──────────────────────────────────────────────────────
     def _capture(self, kind: str) -> None:
         if self.engine.state != "idle":
             messagebox.showinfo("Aguarde", "Pare tudo antes de mudar o atalho.")
@@ -1208,7 +1174,9 @@ class App(ctk.CTk):
         }[kind]
         var.set(cur.upper())
         if not ok:
-            messagebox.showwarning("Atalho inválido", "Escolha uma tecla diferente dos outros atalhos.")
+            messagebox.showwarning(
+                "Atalho inválido", "Escolha uma tecla diferente dos outros atalhos."
+            )
         else:
             self._update_tip()
             if kind == "panic":
@@ -1224,7 +1192,6 @@ class App(ctk.CTk):
                  f"funcionam com o app em segundo plano"
         )
 
-    # ── list ────────────────────────────────────────────────────────────────
     def _refresh_list(self) -> None:
         sel = list(self.listbox.curselection())
         self.listbox.delete(0, tk.END)
@@ -1268,9 +1235,7 @@ class App(ctk.CTk):
         self.engine.toggle_run()
 
     def _save_profile(self) -> None:
-        self._apply_kb_timing()
-        self._apply_mouse()
-        self._apply_repeat()
+        self._flush_settings()
         path = filedialog.asksaveasfilename(
             initialdir=str(PROFILES_DIR), defaultextension=".json",
             filetypes=[("JSON", "*.json")], title="Salvar perfil",
@@ -1295,12 +1260,11 @@ class App(ctk.CTk):
             except (OSError, json.JSONDecodeError, TypeError, KeyError) as err:
                 messagebox.showerror("Erro", f"Não foi possível abrir:\n{err}")
 
-    # ── state UI ────────────────────────────────────────────────────────────
     def _on_state(self, state: str) -> None:
         styles = {
-            "idle": ("●  IDLE", C["idle"], "●  Gravar teclado", "▶  Iniciar"),
+            "idle": ("●  IDLE", C["idle"], "●  Gravar", "▶  Iniciar"),
             "recording": ("●  GRAVANDO", C["rec"], "■  Parar gravação", "▶  Iniciar"),
-            "running": ("●  RODANDO", C["play"], "●  Gravar teclado", "■  Parar"),
+            "running": ("●  RODANDO", C["play"], "●  Gravar", "■  Parar"),
         }
         label, color, rec, run = styles[state]
         self.status.configure(text=label, text_color=color)
