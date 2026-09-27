@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import queue
+import sys
 import threading
 import time
 import tkinter as tk
@@ -41,7 +42,15 @@ C = {
     "play": "#3dd68c",
 }
 
-APP_DIR = Path(__file__).resolve().parent
+
+def _app_dir() -> Path:
+    """Pasta do app (ao lado do .exe quando empacotado)."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent
+
+
+APP_DIR = _app_dir()
 PROFILES_DIR = APP_DIR / "profiles"
 SETTINGS_FILE = APP_DIR / "settings.json"
 

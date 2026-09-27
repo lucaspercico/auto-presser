@@ -4,6 +4,23 @@
 
 Interface moderna (dark), atalhos globais, panic stop e delays precisos. Feito para ser estável e fácil de usar no Windows.
 
+[![Release](https://img.shields.io/github/v/release/lucaspercico/auto-presser?label=download)](https://github.com/lucaspercico/auto-presser/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+---
+
+## Download (executável)
+
+Não precisa instalar Python. Baixe o `.exe` na última release:
+
+**→ [AutoPresser.exe (Releases)](https://github.com/lucaspercico/auto-presser/releases/latest)**
+
+1. Baixe `AutoPresser.exe`
+2. Dê duplo clique para abrir (sem janela de CMD)
+3. Se o Windows Defender pedir confirmação, escolha *Mais informações* → *Executar mesmo assim* (comum em apps novos sem assinatura digital)
+
+O app salva `settings.json` e a pasta `profiles/` **ao lado do .exe**.
+
 ---
 
 ## O que é?
@@ -20,43 +37,7 @@ Ideal para testes de UI, macros simples e tarefas repetitivas. **Não** substitu
 
 ---
 
-## Requisitos
-
-- Windows 10/11 (recomendado)
-- Python **3.10+**
-- Dependências em `requirements.txt`
-
----
-
-## Instalação
-
-```bash
-git clone https://github.com/lucaspercico/auto-presser.git
-cd auto-presser
-pip install -r requirements.txt
-```
-
----
-
 ## Como usar
-
-### Abrir sem janela de CMD (recomendado)
-
-Dê **duplo clique** em:
-
-```
-auto_keyboard_presser.pyw
-```
-
-Isso usa `pythonw` e não abre o terminal.
-
-### Ou pelo terminal
-
-```bash
-python auto_keyboard_presser.py
-```
-
-### Passo a passo rápido
 
 1. No topo, ative **Teclado** e/ou **Mouse**
 2. **Teclado:** pressione **F6** → digite a sequência → **F6** de novo para parar
@@ -66,9 +47,7 @@ python auto_keyboard_presser.py
 
 > Os atalhos funcionam com o app em segundo plano.
 
----
-
-## Atalhos padrão
+### Atalhos padrão
 
 | Tecla | Ação |
 |-------|------|
@@ -76,7 +55,53 @@ python auto_keyboard_presser.py
 | `F7` | Iniciar / parar automação |
 | `F8` | Panic — interrompe tudo imediatamente |
 
-Você pode remapeá-los na seção **Atalhos globais**.
+---
+
+## Rodar pelo código-fonte
+
+### Requisitos
+
+- Windows 10/11
+- Python **3.10+**
+
+```bash
+git clone https://github.com/lucaspercico/auto-presser.git
+cd auto-presser
+pip install -r requirements.txt
+```
+
+### Abrir
+
+```bash
+# Sem janela de CMD (recomendado)
+auto_keyboard_presser.pyw
+
+# Ou pelo terminal
+python auto_keyboard_presser.py
+```
+
+---
+
+## Gerar o .exe você mesmo
+
+No Windows:
+
+```bash
+build.bat
+```
+
+O arquivo sai em `dist\AutoPresser.exe` (onefile, sem console).
+
+Equivalente manual:
+
+```bash
+pip install -r requirements.txt pyinstaller
+pyinstaller --noconfirm --clean --onefile --windowed --name AutoPresser ^
+  --collect-all customtkinter ^
+  --hidden-import pynput.keyboard._win32 ^
+  --hidden-import pynput.mouse._win32 ^
+  auto_keyboard_presser.py
+```
 
 ---
 
@@ -88,9 +113,8 @@ Você pode remapeá-los na seção **Atalhos globais**.
 - Intervalo mínimo de segurança (**10 ms**)
 - Panic sempre disponível
 - Atalhos **não** entram na gravação
-- Debounce na UI durante gravação rápida
-- Settings persistentes (`settings.json` local)
-- Sem console ao usar o `.pyw`
+- Layout compacto sem rolagem nos controles
+- Settings persistentes ao lado do executável / script
 
 ---
 
@@ -109,21 +133,13 @@ Você pode remapeá-los na seção **Atalhos globais**.
 auto-presser/
 ├── auto_keyboard_presser.py    # App principal
 ├── auto_keyboard_presser.pyw   # Launcher sem CMD
+├── build.bat                   # Gera o .exe
 ├── requirements.txt
 ├── LICENSE
 └── README.md
 ```
 
-Arquivos locais (ignorados pelo git): `settings.json`, `profiles/`.
-
----
-
-## Dependências
-
-```
-customtkinter
-pynput
-```
+Arquivos locais (ignorados pelo git): `settings.json`, `profiles/`, `dist/`, `build/`.
 
 ---
 

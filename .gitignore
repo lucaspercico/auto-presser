@@ -9,6 +9,7 @@ build/
 .venv/
 venv/
 env/
+*.spec
 
 # App local state (não versionar)
 settings.json
